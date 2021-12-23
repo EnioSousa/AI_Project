@@ -4,13 +4,14 @@ import requests
 import cv2
 import os
 
-def getPandaImages(animal:str, path:str):
+
+def getPandaImages(animal: str, path: str):
     # set your Microsoft Cognitive Services API key along with (1) the
     # maximum number of results for a given search and (2) the group size
     # for results (maximum of 50 per request)
     API_KEY = "e6c174a192334a169888079b95eeac29"
-    MAX_RESULTS = 10
-    GROUP_SIZE = 10
+    MAX_RESULTS = 10000
+    GROUP_SIZE = 100
     # set the endpoint API URL
     URL = "https://api.bing.microsoft.com/v7.0/images/search"
 
@@ -19,12 +20,12 @@ def getPandaImages(animal:str, path:str):
     # exceptions that can be thrown so let's build a list of them now
     # so we can filter on them
     EXCEPTIONS = set([IOError, FileNotFoundError,
-                    exceptions.RequestException, exceptions.HTTPError,
-                    exceptions.ConnectionError, exceptions.Timeout])
+                      exceptions.RequestException, exceptions.HTTPError,
+                      exceptions.ConnectionError, exceptions.Timeout])
 
     # store the search term in a convenience variable then set the
     # headers and search parameters
-    term = animal 
+    term = animal
     headers = {"Ocp-Apim-Subscription-Key": API_KEY}
     params = {"q": term, "offset": 0, "count": GROUP_SIZE}
     # make the search
@@ -34,7 +35,7 @@ def getPandaImages(animal:str, path:str):
     # grab the results from the search, including the total number of
     # estimated results returned by the Bing API
     results = search.json()
-    estNumResults = min(results["totalEstimatedMatches"], MAX_RESULTS)
+    estNumResults = MAX_RESULTS
     print("[INFO] {} total results for '{}'".format(estNumResults,
                                                     term))
     # initialize the total number of images downloaded thus far
@@ -62,12 +63,18 @@ def getPandaImages(animal:str, path:str):
                 r = requests.get(v["contentUrl"], timeout=30)
                 # build the path to the output image
                 ext = v["contentUrl"][v["contentUrl"].rfind("."):]
-                p = os.path.sep.join([path, animal + "{}{}".format(
-                    str(total).zfill(8), ".jpg")])
-                # write the image to disk
-                f = open(p, "wb")
-                f.write(r.content)
-                f.close()
+
+                if ( ext == ".jpg"):
+                    p = os.path.sep.join([path, animal + "{}{}".format(
+                        str(total).zfill(8), ext)])
+                    # write the image to disk
+                    f = open(p, "wb")
+                    f.write(r.content)
+                    f.close()
+
+                else:
+                    print("[INFO] Ignore image: Not in jpg format")
+                    continue
             # catch any errors that would not unable us to download the
             # image
             except Exception as e:
@@ -83,7 +90,8 @@ def getPandaImages(animal:str, path:str):
             # image from disk (so it should be ignored)
             if image is None:
                 print("[INFO] deleting: {}".format(p))
-                os.remove(p)
+                if ( os.path.exists(p)):
+                    os.remove(p)
                 continue
             # update the counter
             total += 1

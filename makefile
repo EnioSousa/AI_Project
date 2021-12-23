@@ -15,7 +15,13 @@ EXE_ARGS = vgg1 vgg2 vgg3 dropout
 all: checkDir runAll
 
 run: install activate
-	$(PYTHON) $(EXE) --model vgg1 
+	for arg in $(EXE_ARGS); do \
+		echo Argument: --model $$arg --pandas; \
+		$(PYTHON) $(EXE) --model $$arg --pandas > $(LOG)stdout.$$arg.pandas.log 2> $(LOG)stderr.$$arg.pandas.log; \
+	done
+	@echo Argument: --model vgg3 --imgAgu 
+	@$(PYTHON) $(EXE) --model vgg3 --imgAgu --pandas > $(LOG)stdout.vgg3.imgAgu.pandas.log 2> $(LOG)stderr.vgg3.imgAgu.pandas.log
+
 
 runAll: install activate
 	for arg in $(EXE_ARGS); do \
@@ -35,7 +41,7 @@ activate: $(VENV_NAME)
 $(VENV_NAME):
 	python3.8 -m venv $(VENV_NAME)
 
-checkDir: install
+checkDir: install activate
 	mkdir -p $(LOG) $(PLOT) $(MODEL)
 	$(PYTHON) $(EXE) --onlyCreateDir
 

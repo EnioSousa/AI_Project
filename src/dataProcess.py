@@ -68,7 +68,7 @@ def checkData():
     if (not os.listdir(info.dataDir + "trainPanda/" + "panda/")):
         print("No images of panda")
         os.makedirs(info.dataDir + "rawPanda", exist_ok=True)
-        getPandasImages.getPandaImages("pandas",
+        getPandasImages.getPandaImages("panda",
                                        info.dataDir + "rawPanda")
         dataSelection(info.dataDir + "rawPanda")
         shutil.rmtree(info.dataDir + "rawPanda")
