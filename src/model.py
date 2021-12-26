@@ -127,11 +127,15 @@ def summarize_diagnostics(history, arguments):
     pyplot.plot(history.history['val_accuracy'], color='orange', label='test')
 
     # save plot, depending on the arguments we have
-    if ( arguments.imgAgu ):
-        savePath = info.plotDir + arguments.model + "." + "imgAgu" + ".png"
+    savePath = info.plotDir + arguments.model + "."
 
-    else:
-        savePath = info.plotDir + arguments.model + ".png"
+    if ( arguments.pandas ):
+        savePath += "pandas."
+    
+    if ( arguments.imgAgu):
+        savePath += "imgAgu."
+
+    savePath += "png"
 
     pyplot.savefig(savePath)
     pyplot.close()
@@ -206,7 +210,7 @@ def run_test_harness(arguments: argparse.ArgumentParser):
     _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=1)
     print('> %.3f' % (acc * 100.0))
 
-    saveCurrentModel(model)
+    saveCurrentModel(model, arguments)
 
     # learning curves
     summarize_diagnostics(history, arguments)

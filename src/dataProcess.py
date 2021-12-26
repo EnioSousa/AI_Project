@@ -69,7 +69,11 @@ def checkData():
         print("No images of panda")
         os.makedirs(info.dataDir + "rawPanda", exist_ok=True)
         getPandasImages.getPandaImages("panda",
-                                       info.dataDir + "rawPanda")
+                                       info.dataDir + "rawPanda", 0)
+        getPandasImages.getPandaImages("Giant panda",
+                                       info.dataDir + "rawPanda", 1000)
+        getPandasImages.getPandaImages("panda animal",
+                                       info.dataDir + "rawPanda", 2000)
         dataSelection(info.dataDir + "rawPanda")
         shutil.rmtree(info.dataDir + "rawPanda")
 

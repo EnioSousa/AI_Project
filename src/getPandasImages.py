@@ -5,13 +5,13 @@ import cv2
 import os
 
 
-def getPandaImages(animal: str, path: str):
+def getPandaImages(animal: str, path: str, total: int):
     # set your Microsoft Cognitive Services API key along with (1) the
     # maximum number of results for a given search and (2) the group size
     # for results (maximum of 50 per request)
     API_KEY = "e6c174a192334a169888079b95eeac29"
-    MAX_RESULTS = 10000
-    GROUP_SIZE = 100
+    MAX_RESULTS = 5
+    GROUP_SIZE = 5
     # set the endpoint API URL
     URL = "https://api.bing.microsoft.com/v7.0/images/search"
 
@@ -35,11 +35,9 @@ def getPandaImages(animal: str, path: str):
     # grab the results from the search, including the total number of
     # estimated results returned by the Bing API
     results = search.json()
-    estNumResults = MAX_RESULTS
+    estNumResults = min(results["totalEstimatedMatches"], MAX_RESULTS)
     print("[INFO] {} total results for '{}'".format(estNumResults,
                                                     term))
-    # initialize the total number of images downloaded thus far
-    total = 0
 
     # loop over the estimated number of results in `GROUP_SIZE` groups
     for offset in range(0, estNumResults, GROUP_SIZE):
