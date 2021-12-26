@@ -23,7 +23,7 @@ def generateModels(arguments:argparse.ArgumentParser):
 
 def parseArguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, nargs=1,
+    parser.add_argument("--model", type=str,
                         help="The model name to use in keras")
     parser.add_argument("--imgAgu", action='store_true',
                         help="If present then we use images with noise")
@@ -31,6 +31,7 @@ def parseArguments():
                         help="If present we use the dataset with pandas")
     parser.add_argument("--onlyCreateDir", action='store_true',
                         help="if present, only creates the data directories")
+
 
     return parser.parse_args()
 
