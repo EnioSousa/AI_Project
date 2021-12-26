@@ -10,8 +10,8 @@ def getPandaImages(animal: str, path: str, total: int):
     # maximum number of results for a given search and (2) the group size
     # for results (maximum of 50 per request)
     API_KEY = "e6c174a192334a169888079b95eeac29"
-    MAX_RESULTS = 5
-    GROUP_SIZE = 5
+    MAX_RESULTS = 2500
+    GROUP_SIZE = 100
     # set the endpoint API URL
     URL = "https://api.bing.microsoft.com/v7.0/images/search"
 
