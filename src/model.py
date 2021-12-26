@@ -228,6 +228,6 @@ def saveCurrentModel(model: Sequential, arguments: argparse.ArgumentParser):
     if (arguments.imgAgu):
         modelPath += ".imgAgu"
 
-    os.mkdir(modelPath, exist_ok=True)
-
+    os.makedirs(modelPath, exist_ok=True)
+    
     model.save(modelPath)
