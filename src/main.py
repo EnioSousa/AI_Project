@@ -4,7 +4,7 @@ import tensorflow as tf
 import argparse
 
 
-def generateModels(arguments:argparse.ArgumentParser):
+def generateModels(arguments: argparse.ArgumentParser):
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:
@@ -31,7 +31,8 @@ def parseArguments():
                         help="If present we use the dataset with pandas")
     parser.add_argument("--onlyCreateDir", action='store_true',
                         help="if present, only creates the data directories")
-
+    parser.add_argument("--epoch", type=int,
+                        help="Number of epochs")
 
     return parser.parse_args()
 
@@ -41,5 +42,5 @@ if __name__ == '__main__':
 
     checkData()
 
-    if ( parse.model != None ):
+    if (parse.model != None):
         generateModels(parse)

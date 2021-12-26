@@ -1,4 +1,5 @@
 
+import os
 import sys
 from matplotlib import pyplot
 from keras.models import Sequential
@@ -9,6 +10,7 @@ from keras.layers import Flatten
 from keras.layers import Dropout
 from tensorflow.keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.ops.gen_array_ops import tensor_scatter_update
 import info
 import argparse
 
@@ -113,6 +115,8 @@ def define_model_dropout():
     return model
 
 # plot diagnostic learning curves
+
+
 def summarize_diagnostics(history, arguments):
     print("Plot!!!!!\n\n")
     # plot loss
@@ -129,10 +133,10 @@ def summarize_diagnostics(history, arguments):
     # save plot, depending on the arguments we have
     savePath = info.plotDir + arguments.model + "."
 
-    if ( arguments.pandas ):
+    if (arguments.pandas):
         savePath += "pandas."
-    
-    if ( arguments.imgAgu):
+
+    if (arguments.imgAgu):
         savePath += "imgAgu."
 
     savePath += "png"
@@ -161,7 +165,7 @@ def run_test_harness(arguments: argparse.ArgumentParser):
         model = define_model_dropout()
 
     # Chose from normal train set or train set with noise images
-    if ( arguments.imgAgu ):
+    if (arguments.imgAgu):
         datagen = ImageDataGenerator(rescale=1.0/255.0,
                                      width_shift_range=0.1,
                                      height_shift_range=0.1,
@@ -171,23 +175,22 @@ def run_test_harness(arguments: argparse.ArgumentParser):
         datagen = ImageDataGenerator(rescale=1.0/255.0)
 
     # Chose where we going to get our images to train and to test
-    if ( arguments.imgAgu):
-        if ( arguments.pandas):
+    if (arguments.imgAgu):
+        if (arguments.pandas):
             trainSourceDir = info.dataDir + "trainPandaNoise/"
             testSOurceDir = info.dataDir + "testPanda/"
-            
+
         else:
             trainSourceDir = info.dataDir + "trainNoise/"
             testSOurceDir = info.dataDir + "test/"
 
     else:
-        if( arguments.pandas ):
+        if(arguments.pandas):
             trainSourceDir = info.dataDir + "trainPanda/"
             testSOurceDir = info.dataDir + "testPanda/"
         else:
             trainSourceDir = info.dataDir + "train/"
             testSOurceDir = info.dataDir + "test/"
-
 
     # prepare iterators
     train_it = datagen.flow_from_directory(trainSourceDir,
@@ -204,7 +207,7 @@ def run_test_harness(arguments: argparse.ArgumentParser):
                                   steps_per_epoch=len(train_it),
                                   validation_data=test_it,
                                   validation_steps=len(test_it),
-                                  epochs=20, verbose=1)
+                                  epochs=arguments.epoch, verbose=1)
 
     # evaluate model
     _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=1)
@@ -215,11 +218,16 @@ def run_test_harness(arguments: argparse.ArgumentParser):
     # learning curves
     summarize_diagnostics(history, arguments)
 
+
 def saveCurrentModel(model: Sequential, arguments: argparse.ArgumentParser):
-    modelPath = "models/" + arguments.model
+    modelPath = info.modelDir + arguments.model
+
+    if (arguments.pandas):
+        modelPath += ".pandas"
 
     if (arguments.imgAgu):
-        modelPath += "." + sys.argv[2]
+        modelPath += ".imgAgu"
+
+    os.mkdir(modelPath, exist_ok=True)
 
     model.save(modelPath)
-    

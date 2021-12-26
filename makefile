@@ -8,28 +8,33 @@ MODEL = models/
 
 EXE = $(SRC)main.py
 
-EXE_ARGS = vgg1 vgg2 vgg3 dropout
+EXE_ARGS = vgg1 vgg2 vgg3
 
-.PHONY: all run runAll install activate clean checkDir
+.PHONY: all runAll install activate clean checkDir
 
 all: checkDir runAll
 
-run: install activate
+runAll: checkDir install activate
 	for arg in $(EXE_ARGS); do \
-		echo Argument: --model $$arg --pandas; \
-		$(PYTHON) $(EXE) --model $$arg --pandas | tee $(LOG)stdout.$$arg.pandas.log 2> $(LOG)stderr.$$arg.pandas.log; \
-	done
-	@echo Argument: --model vgg3 --imgAgu 
-	@$(PYTHON) $(EXE) --model vgg3 --imgAgu --pandas | tee $(LOG)stdout.vgg3.imgAgu.pandas.log 2> $(LOG)stderr.vgg3.imgAgu.pandas.log
+		$(PYTHON) $(EXE) --model $$arg --epoch 20 | tee $(LOG)stdout.$$arg.log \
+		2> $(LOG)stderr.$$arg.log; \
+		$(PYTHON) $(EXE) --model $$arg --epoch 50 --imgAgu | tee $(LOG)stdout.$$arg.imgAgu.log \
+		2> $(LOG)stderr.$$arg.imgAgu.log; \
+		$(PYTHON) $(EXE) --model $$arg --epoch 20 --pandas | tee $(LOG)stdout.$$arg.pandas.log \
+		2> $(LOG)stderr.$$arg.pandas.log; \
+		$(PYTHON) $(EXE) --model $$arg --epoch 50 --pandas --imgAgu | tee $(LOG)stdout.$$arg.pandas.imgAgu.log \
+		2> $(LOG)stderr.$$arg.pandas.imgAgu.log; \
+	done; \
 
-
-runAll: install activate
-	for arg in $(EXE_ARGS); do \
-		echo Argument: --model $$arg; \
-		$(PYTHON) $(EXE) --model $$arg | tee $(LOG)stdout.$$arg.log 2> $(LOG)stderr.$$arg.log; \
-	done
-	@echo Argument: --model vgg3 --imgAgu 
-	@$(PYTHON) $(EXE) --model vgg3 --imgAgu | tee $(LOG)stdout.vgg3.imgAgu.log 2> $(LOG)stderr.vgg3.imgAgu.log
+	$(PYTHON) $(EXE) --model dropout --epoch 50 | tee $(LOG)stdout.dropout.log \
+	2> $(LOG)stderr.dropout.log; \
+	$(PYTHON) $(EXE) --model dropout --epoch 50 --imgAgu | tee $(LOG)stdout.dropout.imgAgu.log \
+	2> $(LOG)stderr.dropout.imgAgu.log; \
+	$(PYTHON) $(EXE) --model dropout --epoch 50 --pandas | tee $(LOG)stdout.dropout.pandas.log \
+	2> $(LOG)stderr.dropout.pandas.log; \
+	$(PYTHON) $(EXE) --model dropout --epoch 50 --imgAgu --pandas | tee $(LOG)stdout.dropout.pandas.imgAgu.log \
+	2> $(LOG)stderr.dropout.pandas.imgAgu.log; \
+	
 
 install: activate $(LOG)
 	$(VENV_NAME)/bin/pip install --upgrade pip | tee $(LOG)stdout.python.log 2> $(LOG)stderr.python.log
@@ -41,12 +46,11 @@ activate: $(VENV_NAME)
 $(VENV_NAME):
 	python3.8 -m venv $(VENV_NAME)
 
-checkDir: install activate
-	mkdir -p $(LOG) $(PLOT) $(MODEL)
+checkDir: $(LOG) $(PLOT) $(MODEL) install activate
 	$(PYTHON) $(EXE) --onlyCreateDir
 
-$(LOG):
-	mkdir -p $(LOG)
+$(LOG) $(PLOT) $(MODEL):
+	mkdir -p $@
 
 clean:
 	rm -r $(VENV_NAME)

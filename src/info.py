@@ -5,4 +5,4 @@ plotDir = "./plot/"
 modelDir = "./models/"
 logDir = "./log/"
 
-batchNumber = 64
+batchNumber = 14
