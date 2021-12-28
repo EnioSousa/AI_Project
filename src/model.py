@@ -2,12 +2,13 @@
 import os
 import sys
 from matplotlib import pyplot
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Dense
 from keras.layers import Flatten
 from keras.layers import Dropout
+from keras.applications.vgg16 import VGG16
 from tensorflow.keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.ops.gen_array_ops import tensor_scatter_update
@@ -114,9 +115,25 @@ def define_model_dropout():
                   metrics=['accuracy'])
     return model
 
+# define cnn model
+def define_model_sixteen_block_vgg():
+	# load model
+	model = VGG16(include_top=False, input_shape=(224, 224, 3))
+	# mark loaded layers as not trainable
+	for layer in model.layers:
+		layer.trainable = False
+	# add new classifier layers
+	flat1 = Flatten()(model.layers[-1].output)
+	class1 = Dense(128, activation='relu', kernel_initializer='he_uniform')(flat1)
+	output = Dense(1, activation='sigmoid')(class1)
+	# define new model
+	model = Model(inputs=model.inputs, outputs=output)
+	# compile model
+	opt = SGD(lr=0.001, momentum=0.9)
+	model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+	return model
+
 # plot diagnostic learning curves
-
-
 def summarize_diagnostics(history, arguments):
     print("Plot!!!!!\n\n")
     # plot loss
@@ -160,6 +177,9 @@ def run_test_harness(arguments: argparse.ArgumentParser):
 
     elif(arguments.model == "vgg3"):
         model = define_model_three_block_vgg()
+    
+    elif(arguments.model == "vgg16"):
+        model = define_model_sixteen_block_vgg()
 
     else:
         model = define_model_dropout()

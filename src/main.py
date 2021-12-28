@@ -2,9 +2,12 @@ from dataProcess import *
 from model import *
 import tensorflow as tf
 import argparse
-
+import predict
 
 def generateModels(arguments: argparse.ArgumentParser):
+    run_test_harness(arguments)
+
+def gpuMemorygrowth():
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:
@@ -18,9 +21,6 @@ def generateModels(arguments: argparse.ArgumentParser):
             # Memory growth must be set before GPUs have been initialized
             print(e)
 
-    run_test_harness(arguments)
-
-
 def parseArguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str,
@@ -33,6 +33,8 @@ def parseArguments():
                         help="if present, only creates the data directories")
     parser.add_argument("--epoch", type=int,
                         help="Number of epochs")
+    parser.add_argument("--predict", action="store_true",
+                        help="If present we try to classify a group of images")
 
     return parser.parse_args()
 
@@ -41,6 +43,20 @@ if __name__ == '__main__':
     parse = parseArguments()
 
     checkData()
+    gpuMemorygrowth()
 
-    if (parse.model != None):
+    if (parse.predict == False and parse.model != None):
+        print("Generate models")
         generateModels(parse)
+
+    elif (parse.model != None):
+        print("Predict")
+        modelName = parse.model
+
+        if ( parse.pandas ):
+            modelName += ".pandas"
+
+        if ( parse.imgAgu):
+            modelName += ".imgAgu"
+
+        predict.predict(modelName)
