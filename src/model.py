@@ -190,7 +190,10 @@ def run_test_harness(arguments: argparse.ArgumentParser):
                                      width_shift_range=0.1,
                                      height_shift_range=0.1,
                                      horizontal_flip=True)
-
+    elif(arguments.model == "vgg16"):
+        datagen = ImageDataGenerator(featurewise_center=True)
+	    # specify imagenet mean values for centering
+        datagen.mean = [123.68, 116.779, 103.939]
     else:
         datagen = ImageDataGenerator(rescale=1.0/255.0)
 
@@ -211,23 +214,27 @@ def run_test_harness(arguments: argparse.ArgumentParser):
         else:
             trainSourceDir = info.dataDir + "train/"
             testSOurceDir = info.dataDir + "test/"
-
+            
+    if (arguments.model == "vgg16"):
+        targetSize = (224,224)
+    else: targetSize = (200,200)
+        
     # prepare iterators
     train_it = datagen.flow_from_directory(trainSourceDir,
-                                           class_mode='binary',
-                                           batch_size=info.batchNumber,
-                                           target_size=(200, 200))
+                                           class_mode = 'binary',
+                                           batch_size = info.batchNumber,
+                                           target_size = targetSize)
 
     test_it = datagen.flow_from_directory(testSOurceDir,
-                                          class_mode='binary',
-                                          batch_size=info.batchNumber,
-                                          target_size=(200, 200))
+                                          class_mode = 'binary',
+                                          batch_size = info.batchNumber,
+                                          target_size = targetSize)
 
     history = model.fit_generator(train_it,
-                                  steps_per_epoch=len(train_it),
-                                  validation_data=test_it,
-                                  validation_steps=len(test_it),
-                                  epochs=arguments.epoch, verbose=1)
+                                  steps_per_epoch = len(train_it),
+                                  validation_data = test_it,
+                                  validation_steps = len(test_it),
+                                  epochs = arguments.epoch, verbose=1)
 
     # evaluate model
     _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=1)
@@ -247,7 +254,7 @@ def saveCurrentModel(model: Sequential, arguments: argparse.ArgumentParser):
 
     if (arguments.imgAgu):
         modelPath += ".imgAgu"
-
+    
     os.makedirs(modelPath, exist_ok=True)
     
     model.save(modelPath)

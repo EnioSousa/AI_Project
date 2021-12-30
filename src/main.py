@@ -59,4 +59,4 @@ if __name__ == '__main__':
         if ( parse.imgAgu):
             modelName += ".imgAgu"
 
-        predict.predict(modelName)
+        predict.predict(modelName,parse)

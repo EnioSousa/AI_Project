@@ -8,33 +8,43 @@ MODEL = models/
 
 EXE = $(SRC)main.py
 
-EXE_ARGS = vgg1 vgg2 vgg3
+EXE_ARGS = vgg1 #TODOOOO MUDAR AQUI
 
-.PHONY: all runAll install activate clean checkDir
+.PHONY: all runAll install activate clean checkDir predict
 
 all: checkDir runAll
 
 runAll: checkDir install activate
-	for arg in $(EXE_ARGS); do \
-		$(PYTHON) $(EXE) --model $$arg --epoch 20 | tee $(LOG)stdout.$$arg.log \
-		2> $(LOG)stderr.$$arg.log; \
-		$(PYTHON) $(EXE) --model $$arg --epoch 50 --imgAgu | tee $(LOG)stdout.$$arg.imgAgu.log \
-		2> $(LOG)stderr.$$arg.imgAgu.log; \
-		$(PYTHON) $(EXE) --model $$arg --epoch 20 --pandas | tee $(LOG)stdout.$$arg.pandas.log \
-		2> $(LOG)stderr.$$arg.pandas.log; \
-		$(PYTHON) $(EXE) --model $$arg --epoch 50 --pandas --imgAgu | tee $(LOG)stdout.$$arg.pandas.imgAgu.log \
-		2> $(LOG)stderr.$$arg.pandas.imgAgu.log; \
-	done; \
+	#for arg in $(EXE_ARGS); do \
+		#$(PYTHON) $(EXE) --model $$arg --epoch 20 | tee $(LOG)stdout.$$arg.log \
+		#2> $(LOG)stderr.$$arg.log; \
+		#$(PYTHON) $(EXE) --model $$arg --epoch 50 --imgAgu | tee $(LOG)stdout.$$arg.imgAgu.log \
+		#2> $(LOG)stderr.$$arg.imgAgu.log; \
+		#$(PYTHON) $(EXE) --model $$arg --epoch 20 --pandas | tee $(LOG)stdout.$$arg.pandas.log \
+		#2> $(LOG)stderr.$$arg.pandas.log; \
+		#$(PYTHON) $(EXE) --model $$arg --epoch 50 --pandas --imgAgu | tee $(LOG)stdout.$$arg.pandas.imgAgu.log \
+		#2> $(LOG)stderr.$$arg.pandas.imgAgu.log; \
+	#done; \
 
-	$(PYTHON) $(EXE) --model dropout --epoch 50 | tee $(LOG)stdout.dropout.log \
-	2> $(LOG)stderr.dropout.log; \
-	$(PYTHON) $(EXE) --model dropout --epoch 50 --imgAgu | tee $(LOG)stdout.dropout.imgAgu.log \
-	2> $(LOG)stderr.dropout.imgAgu.log; \
-	$(PYTHON) $(EXE) --model dropout --epoch 50 --pandas | tee $(LOG)stdout.dropout.pandas.log \
-	2> $(LOG)stderr.dropout.pandas.log; \
-	$(PYTHON) $(EXE) --model dropout --epoch 50 --imgAgu --pandas | tee $(LOG)stdout.dropout.pandas.imgAgu.log \
-	2> $(LOG)stderr.dropout.pandas.imgAgu.log; \
+	#$(PYTHON) $(EXE) --model dropout --epoch 50 | tee $(LOG)stdout.dropout.log \
+	#2> $(LOG)stderr.dropout.log; \
+	#$(PYTHON) $(EXE) --model dropout --epoch 50 --imgAgu | tee $(LOG)stdout.dropout.imgAgu.log \
+	#2> $(LOG)stderr.dropout.imgAgu.log; \
+
+	$(PYTHON) $(EXE) --model vgg16 --epoch 10 | tee $(LOG)stdout.vgg16.log \
+	2> $(LOG)stderr.vgg16.log; \
+	#$(PYTHON) $(EXE) --model vgg16 --epoch 10 --pandas | tee $(LOG)stdout.vgg16.pandas.log \
+	#2> $(LOG)stderr.vgg16.pandas.log; \
+
+	#$(PYTHON) $(EXE) --model dropout --epoch 50 --pandas | tee $(LOG)stdout.dropout.pandas.log \
+	#2> $(LOG)stderr.dropout.pandas.log; \
+	#$(PYTHON) $(EXE) --model dropout --epoch 50 --imgAgu --pandas | tee $(LOG)stdout.dropout.pandas.imgAgu.log \
+	#2> $(LOG)stderr.dropout.pandas.imgAgu.log; \
+
 	
+predict:
+	#$(PYTHON) $(EXE) --model vgg16 --predict
+	$(PYTHON) $(EXE) --model vgg1 --predict
 
 install: activate $(LOG)
 	$(VENV_NAME)/bin/pip install --upgrade pip | tee $(LOG)stdout.python.log 2> $(LOG)stderr.python.log
