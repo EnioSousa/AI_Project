@@ -74,11 +74,13 @@ model.fit_generator(training_set,
  
 # Saving the weights in the current directory
 model.save_weights("resnet50_weights.h5")
+
+
  
 # Predicting the final result of image
 import numpy as np
 from keras.preprocessing import image
-test_image = image.load_img('./data/predict/cat.0.jpg', target_size = (224, 224))
+test_image = image.load_img('../data/predict/cat.0.jpg', target_size = (224, 224))
 test_image = image.img_to_array(test_image)\
  
 # Expanding the 3-d image to 4-d image.

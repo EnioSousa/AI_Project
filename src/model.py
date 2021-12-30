@@ -234,7 +234,8 @@ def run_test_harness(arguments: argparse.ArgumentParser):
                                   steps_per_epoch = len(train_it),
                                   validation_data = test_it,
                                   validation_steps = len(test_it),
-                                  epochs = arguments.epoch, verbose=1)
+                                  epochs = arguments.epoch, 
+                                  verbose=1)
 
     # evaluate model
     _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=1)
