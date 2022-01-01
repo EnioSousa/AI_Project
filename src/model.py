@@ -1,6 +1,8 @@
-
 import os
 import sys
+import logging
+from keras.saving.save import load_model
+
 from matplotlib import pyplot
 from keras.models import Sequential, Model
 from keras.layers import Conv2D
@@ -11,12 +13,22 @@ from keras.layers import Dropout
 from keras.applications.vgg16 import VGG16
 from tensorflow.keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
-from tensorflow.python.ops.gen_array_ops import tensor_scatter_update
+
 import info
 import argparse
+import modelResnet
 
+def modelVGG1(nClass: int) -> Sequential:
+    """ Creates a vgg1 model
 
-def define_model_one_block_vgg():
+    Args:
+        nClass (int): Number of classes in our dataset
+
+    Returns:
+        Sequential: vgg model
+    """
+    logging.info("Model vgg1 chosen")
+
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu',
                      kernel_initializer='he_uniform', padding='same',
@@ -26,20 +38,30 @@ def define_model_one_block_vgg():
     model.add(Flatten())
 
     model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(nClass, activation="softmax"))
 
     # compile model
     opt = SGD(lr=0.001, momentum=0.9)
-    model.compile(optimizer=opt, loss='binary_crossentropy',
-                  metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=opt, metrics=['accuracy'])
+
     return model
 
+def modelVGG2(nClass: int) -> Sequential:
+    """ Creates a vgg2 model
 
-def define_model_two_block_vgg():
+    Args:
+        nClass (int): Number of classes in our dataset
+
+    Returns:
+        Sequential: vgg model
+    """
+    logging.info("Model vgg2 chosen")
+
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu',
-              kernel_initializer='he_uniform', padding='same',
-              input_shape=(200, 200, 3)))
+                     kernel_initializer='he_uniform', padding='same',
+                     input_shape=(200, 200, 3)))
     model.add(MaxPooling2D((2, 2)))
 
     model.add(Conv2D(64, (3, 3), activation='relu',
@@ -49,16 +71,26 @@ def define_model_two_block_vgg():
     model.add(Flatten())
 
     model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(nClass, activation="softmax"))
 
     # compile model
     opt = SGD(lr=0.001, momentum=0.9)
-    model.compile(optimizer=opt, loss='binary_crossentropy',
-                  metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=opt, metrics=['accuracy'])
+
     return model
 
+def modelVGG3(nClass: int) -> Sequential:
+    """ Creates a vgg3 model
 
-def define_model_three_block_vgg():
+    Args:
+        nClass (int): Number of classes in our dataset
+
+    Returns:
+        Sequential: vgg model
+    """
+    logging.info("Model vgg3 chosen")
+
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu',
                      kernel_initializer='he_uniform', padding='same',
@@ -66,9 +98,9 @@ def define_model_three_block_vgg():
     model.add(MaxPooling2D((2, 2)))
 
     model.add(Conv2D(64, (3, 3), activation='relu',
-                     kernel_initializer='he_uniform', padding='same'))
+              kernel_initializer='he_uniform', padding='same'))
     model.add(MaxPooling2D((2, 2)))
-
+    
     model.add(Conv2D(128, (3, 3), activation='relu',
                      kernel_initializer='he_uniform', padding='same'))
     model.add(MaxPooling2D((2, 2)))
@@ -76,16 +108,53 @@ def define_model_three_block_vgg():
     model.add(Flatten())
 
     model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(nClass, activation="softmax"))
 
     # compile model
     opt = SGD(lr=0.001, momentum=0.9)
-    model.compile(optimizer=opt, loss='binary_crossentropy',
-                  metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=opt, metrics=['accuracy'])
+
     return model
 
 
-def define_model_dropout():
+# define cnn model
+def modelVGG16(nClass:int):
+    logging.info("Model vgg16 chosen")
+
+    # load model
+    model = VGG16(include_top=False, input_shape=(224, 224, 3))
+
+    # mark loaded layers as not trainable
+    for layer in model.layers:
+        layer.trainable = False
+
+    # add new classifier layers
+    flat1 = Flatten()(model.layers[-1].output)
+    class1 = Dense(128, activation='relu',
+                   kernel_initializer='he_uniform')(flat1)
+    output = Dense(nClass, activation='softmax')(class1)
+
+    # define new model
+    model = Model(inputs=model.inputs, outputs=output)
+
+    # compile model
+    opt = SGD(lr=0.001, momentum=0.9)
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=opt, metrics=['accuracy'])
+
+    return model
+
+def modelDropout(nClass:int):
+    """ create a vgg model with dropout
+
+    Args:
+        nClass (int): number of classes in the dataset
+
+    Returns:
+        [type]: vgg model with dropout
+    """
+    logging.info("Model dropout chosen")
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu',
                      kernel_initializer='he_uniform', padding='same',
@@ -107,155 +176,146 @@ def define_model_dropout():
 
     model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
     model.add(Dropout(0.5))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(nClass, activation="softmax"))
 
     # compile model
     opt = SGD(lr=0.001, momentum=0.9)
-    model.compile(optimizer=opt, loss='binary_crossentropy',
+    model.compile(optimizer=opt, loss='categorical_crossentropy',
                   metrics=['accuracy'])
     return model
 
-# define cnn model
-def define_model_sixteen_block_vgg():
-	# load model
-	model = VGG16(include_top=False, input_shape=(224, 224, 3))
-	# mark loaded layers as not trainable
-	for layer in model.layers:
-		layer.trainable = False
-	# add new classifier layers
-	flat1 = Flatten()(model.layers[-1].output)
-	class1 = Dense(128, activation='relu', kernel_initializer='he_uniform')(flat1)
-	output = Dense(1, activation='sigmoid')(class1)
-	# define new model
-	model = Model(inputs=model.inputs, outputs=output)
-	# compile model
-	opt = SGD(lr=0.001, momentum=0.9)
-	model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
-	return model
+def plotGraph(history, modelName: str):
+    """ Plot the accuracy and loss of our model traning. The plots are
+    saved in the plot directory, with the model name
 
-# plot diagnostic learning curves
-def summarize_diagnostics(history, arguments):
-    print("Plot!!!!!\n\n")
-    # plot loss
-    pyplot.subplot(211)
-    pyplot.title('Cross Entropy Loss')
-    pyplot.plot(history.history['loss'], color='blue', label='train')
-    pyplot.plot(history.history['val_loss'], color='orange', label='test')
-    # plot accuracy
-    pyplot.subplot(212)
-    pyplot.title('Classification Accuracy')
-    pyplot.plot(history.history['accuracy'], color='blue', label='train')
-    pyplot.plot(history.history['val_accuracy'], color='orange', label='test')
+    Args:
+        history ([type]): traning history
+        modelName (str): model name
+    """
+    logging.info("Plot")
 
-    # save plot, depending on the arguments we have
-    savePath = info.plotDir + arguments.model + "."
+    figure, (ax1, ax2) = pyplot.subplots(nrows=2)
 
-    if (arguments.pandas):
-        savePath += "pandas."
+    ax1.set_title('Cross Entropy loss')
+    ax1.plot(history.history['loss'], color='blue', label='train')
+    ax1.plot(history.history['val_loss'], color='orange', label='test')
 
-    if (arguments.imgAgu):
-        savePath += "imgAgu."
+    ax2.set_title('Classification Accuracy')
+    ax2.plot(history.history['accuracy'], color='blue', label='train')
+    ax2.plot(history.history['val_accuracy'], color='orange', label='test')
 
-    savePath += "png"
+    figure.tight_layout(pad=2)
 
-    pyplot.savefig(savePath)
+    try:
+        figure.savefig(info.plotDir + modelName + ".png")
+    except Exception as e:
+        logging.exception("Exception while saving plot")
+
+    logging.info("Plot saved")
     pyplot.close()
 
 
-# run the test harness for evaluating a model
-def run_test_harness(arguments: argparse.ArgumentParser):
-    if (len(sys.argv) < 1):
-        print("Argument error")
-        return
+def trainModel(modelName: str, args:argparse.ArgumentParser.parse_args):
+    logging.info("Starting to train model")
 
-    # Chose from different models
-    if (arguments.model == "vgg1"):
-        model = define_model_one_block_vgg()
+    # Calculate the number of classes in dataset
+    nClass = 2
+    if ("panda" in modelName):
+        nClass += 1
 
-    elif(arguments.model == "vgg2"):
-        model = define_model_two_block_vgg()
+    logging.info("Choosing model type")
 
-    elif(arguments.model == "vgg3"):
-        model = define_model_three_block_vgg()
+    # Chose model
+    if (args.model == "vgg1"):
+        model = modelVGG1(nClass)
+
+    elif(args.model == "vgg2"):
+        model = modelVGG2(nClass)
+
+    elif(args.model == "vgg3"):
+        model = modelVGG3(nClass)
+
+    elif(args.model == "vgg16"):
+        model = modelVGG16(nClass)
+
+    elif (args.model == "dropout"):
+        model = modelDropout(nClass)
     
-    elif(arguments.model == "vgg16"):
-        model = define_model_sixteen_block_vgg()
+    elif( args.model == "resNet50"):
+        return modelResnet.trainModelResNet50()
 
-    else:
-        model = define_model_dropout()
-
-    # Chose from normal train set or train set with noise images
-    if (arguments.imgAgu):
-        datagen = ImageDataGenerator(rescale=1.0/255.0,
+    logging.info("Choosing image generator type")
+    # Chose data generator
+    if ("imgAgu" in modelName):
+        dataGen = ImageDataGenerator(rescale=1.0/255.0,
                                      width_shift_range=0.1,
                                      height_shift_range=0.1,
                                      horizontal_flip=True)
-    elif(arguments.model == "vgg16"):
-        datagen = ImageDataGenerator(featurewise_center=True)
-	    # specify imagenet mean values for centering
-        datagen.mean = [123.68, 116.779, 103.939]
-    else:
-        datagen = ImageDataGenerator(rescale=1.0/255.0)
 
-    # Chose where we going to get our images to train and to test
-    if (arguments.imgAgu):
-        if (arguments.pandas):
-            trainSourceDir = info.dataDir + "trainPandaNoise/"
-            testSOurceDir = info.dataDir + "testPanda/"
-
-        else:
-            trainSourceDir = info.dataDir + "trainNoise/"
-            testSOurceDir = info.dataDir + "test/"
+    elif ("vgg16" in modelName):
+        dataGen = ImageDataGenerator(featurewise_center=True)
+        dataGen.mean = [123.68, 116.779, 103.939]
 
     else:
-        if(arguments.pandas):
-            trainSourceDir = info.dataDir + "trainPanda/"
-            testSOurceDir = info.dataDir + "testPanda/"
+        dataGen = ImageDataGenerator(rescale=1.0/255.0)
+
+    # Specify data set source
+    testSource = info.dataDir
+    trainSource = info.dataDir
+
+    if ("imgAgu" in modelName):
+        if ("panda" in modelName):
+            trainSource += "trainPandaNoise/"
+            testSource += "testPanda"
+
         else:
-            trainSourceDir = info.dataDir + "train/"
-            testSOurceDir = info.dataDir + "test/"
-            
-    if (arguments.model == "vgg16"):
-        targetSize = (224,224)
-    else: targetSize = (200,200)
-        
-    # prepare iterators
-    train_it = datagen.flow_from_directory(trainSourceDir,
-                                           class_mode = 'binary',
-                                           batch_size = info.batchNumber,
-                                           target_size = targetSize)
+            trainSource += "trainNoise/"
+            testSource += "test/"
 
-    test_it = datagen.flow_from_directory(testSOurceDir,
-                                          class_mode = 'binary',
-                                          batch_size = info.batchNumber,
-                                          target_size = targetSize)
+    else:
+        if ("panda" in modelName):
+            trainSource += "trainPanda/"
+            testSource += "testPanda"
 
-    history = model.fit_generator(train_it,
-                                  steps_per_epoch = len(train_it),
-                                  validation_data = test_it,
-                                  validation_steps = len(test_it),
-                                  epochs = arguments.epoch, 
-                                  verbose=1)
+        else:
+            trainSource += "train/"
+            testSource += "test/"
 
-    # evaluate model
-    _, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=1)
+    # Specify images target size
+    if (args.model == "vgg16"):
+        targetSize = (224, 224)
+    else:
+        targetSize = (200, 200)
+
+    logging.info("Setting data generators")
+    trainGen = dataGen.flow_from_directory(trainSource,
+                                           class_mode="categorical",
+                                           batch_size=info.batchNumber,
+                                           target_size=targetSize)
+
+    testGen = dataGen.flow_from_directory(testSource,
+                                          class_mode="categorical",
+                                          batch_size=info.batchNumber,
+                                          target_size=targetSize)
+
+    logging.info("Traning model")
+    history = model.fit(trainGen,
+                        steps_per_epoch=len(trainGen),
+                        validation_data=testGen,
+                        validation_steps=len(testGen),
+                        epochs=1)
+
+    logging.info("Traning finished")
+    (loss, acc) = model.evaluate(testGen, steps=len(testGen))
     print('> %.3f' % (acc * 100.0))
+    logging.info("Accuracy is %.3f", (acc * 100.0))
 
-    saveCurrentModel(model, arguments)
+    plotGraph(history, modelName)
 
-    # learning curves
-    summarize_diagnostics(history, arguments)
+    saveModel(model, modelName)
 
 
-def saveCurrentModel(model: Sequential, arguments: argparse.ArgumentParser):
-    modelPath = info.modelDir + arguments.model
+def saveModel(model: Sequential, modelName:str):
+    logging.info("saving model %s", modelName)
 
-    if (arguments.pandas):
-        modelPath += ".pandas"
-
-    if (arguments.imgAgu):
-        modelPath += ".imgAgu"
-    
-    os.makedirs(modelPath, exist_ok=True)
-    
-    model.save(modelPath)
+    model.save(info.modelDir + modelName)
