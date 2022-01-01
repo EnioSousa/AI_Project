@@ -17,6 +17,7 @@ from keras.preprocessing.image import ImageDataGenerator
 import info
 import argparse
 import modelResnet
+import plot
 
 def modelVGG1(nClass: int) -> Sequential:
     """ Creates a vgg1 model
@@ -46,6 +47,7 @@ def modelVGG1(nClass: int) -> Sequential:
                   optimizer=opt, metrics=['accuracy'])
 
     return model
+
 
 def modelVGG2(nClass: int) -> Sequential:
     """ Creates a vgg2 model
@@ -80,6 +82,7 @@ def modelVGG2(nClass: int) -> Sequential:
 
     return model
 
+
 def modelVGG3(nClass: int) -> Sequential:
     """ Creates a vgg3 model
 
@@ -100,7 +103,7 @@ def modelVGG3(nClass: int) -> Sequential:
     model.add(Conv2D(64, (3, 3), activation='relu',
               kernel_initializer='he_uniform', padding='same'))
     model.add(MaxPooling2D((2, 2)))
-    
+
     model.add(Conv2D(128, (3, 3), activation='relu',
                      kernel_initializer='he_uniform', padding='same'))
     model.add(MaxPooling2D((2, 2)))
@@ -119,7 +122,7 @@ def modelVGG3(nClass: int) -> Sequential:
 
 
 # define cnn model
-def modelVGG16(nClass:int):
+def modelVGG16(nClass: int):
     logging.info("Model vgg16 chosen")
 
     # load model
@@ -145,7 +148,8 @@ def modelVGG16(nClass:int):
 
     return model
 
-def modelDropout(nClass:int):
+
+def modelDropout(nClass: int):
     """ create a vgg model with dropout
 
     Args:
@@ -184,38 +188,7 @@ def modelDropout(nClass:int):
                   metrics=['accuracy'])
     return model
 
-def plotGraph(history, modelName: str):
-    """ Plot the accuracy and loss of our model traning. The plots are
-    saved in the plot directory, with the model name
-
-    Args:
-        history ([type]): traning history
-        modelName (str): model name
-    """
-    logging.info("Plot")
-
-    figure, (ax1, ax2) = pyplot.subplots(nrows=2)
-
-    ax1.set_title('Cross Entropy loss')
-    ax1.plot(history.history['loss'], color='blue', label='train')
-    ax1.plot(history.history['val_loss'], color='orange', label='test')
-
-    ax2.set_title('Classification Accuracy')
-    ax2.plot(history.history['accuracy'], color='blue', label='train')
-    ax2.plot(history.history['val_accuracy'], color='orange', label='test')
-
-    figure.tight_layout(pad=2)
-
-    try:
-        figure.savefig(info.plotDir + modelName + ".png")
-    except Exception as e:
-        logging.exception("Exception while saving plot")
-
-    logging.info("Plot saved")
-    pyplot.close()
-
-
-def trainModel(modelName: str, args:argparse.ArgumentParser.parse_args):
+def trainModel(modelName: str, args: argparse.ArgumentParser.parse_args):
     logging.info("Starting to train model")
 
     # Calculate the number of classes in dataset
@@ -224,40 +197,6 @@ def trainModel(modelName: str, args:argparse.ArgumentParser.parse_args):
         nClass += 1
 
     logging.info("Choosing model type")
-
-    # Chose model
-    if (args.model == "vgg1"):
-        model = modelVGG1(nClass)
-
-    elif(args.model == "vgg2"):
-        model = modelVGG2(nClass)
-
-    elif(args.model == "vgg3"):
-        model = modelVGG3(nClass)
-
-    elif(args.model == "vgg16"):
-        model = modelVGG16(nClass)
-
-    elif (args.model == "dropout"):
-        model = modelDropout(nClass)
-    
-    elif( args.model == "resNet50"):
-        return modelResnet.trainModelResNet50()
-
-    logging.info("Choosing image generator type")
-    # Chose data generator
-    if ("imgAgu" in modelName):
-        dataGen = ImageDataGenerator(rescale=1.0/255.0,
-                                     width_shift_range=0.1,
-                                     height_shift_range=0.1,
-                                     horizontal_flip=True)
-
-    elif ("vgg16" in modelName):
-        dataGen = ImageDataGenerator(featurewise_center=True)
-        dataGen.mean = [123.68, 116.779, 103.939]
-
-    else:
-        dataGen = ImageDataGenerator(rescale=1.0/255.0)
 
     # Specify data set source
     testSource = info.dataDir
@@ -281,6 +220,45 @@ def trainModel(modelName: str, args:argparse.ArgumentParser.parse_args):
             trainSource += "train/"
             testSource += "test/"
 
+    # Chose model
+    if (args.model == "vgg1"):
+        model = modelVGG1(nClass)
+
+    elif(args.model == "vgg2"):
+        model = modelVGG2(nClass)
+
+    elif(args.model == "vgg3"):
+        model = modelVGG3(nClass)
+
+    elif(args.model == "vgg16"):
+        model = modelVGG16(nClass)
+
+    elif (args.model == "dropout"):
+        model = modelDropout(nClass)
+
+    elif(args.model == "resNet50"):
+        try:
+            modelResnet.trainModelResNet50(nClass, modelName, trainSource,
+                                              testSource)
+        except Exception as e:
+            logging.exception("Exception while doing resNet50") 
+        return
+
+    logging.info("Choosing image generator type")
+    # Chose data generator
+    if ("imgAgu" in modelName):
+        dataGen = ImageDataGenerator(rescale=1.0/255.0,
+                                     width_shift_range=0.1,
+                                     height_shift_range=0.1,
+                                     horizontal_flip=True)
+
+    elif ("vgg16" in modelName):
+        dataGen = ImageDataGenerator(featurewise_center=True)
+        dataGen.mean = [123.68, 116.779, 103.939]
+
+    else:
+        dataGen = ImageDataGenerator(rescale=1.0/255.0)
+
     # Specify images target size
     if (args.model == "vgg16"):
         targetSize = (224, 224)
@@ -303,19 +281,25 @@ def trainModel(modelName: str, args:argparse.ArgumentParser.parse_args):
                         steps_per_epoch=len(trainGen),
                         validation_data=testGen,
                         validation_steps=len(testGen),
-                        epochs=1)
+                        epochs=args.epoch)
 
     logging.info("Traning finished")
     (loss, acc) = model.evaluate(testGen, steps=len(testGen))
     print('> %.3f' % (acc * 100.0))
     logging.info("Accuracy is %.3f", (acc * 100.0))
 
-    plotGraph(history, modelName)
+    plot.plotGraph(history, modelName)
 
     saveModel(model, modelName)
 
 
-def saveModel(model: Sequential, modelName:str):
+def saveModel(model: Sequential, modelName: str):
+    """Save sequential model
+
+    Args:
+        model (Sequential): model to save
+        modelName (str): name to be used to save the model
+    """
     logging.info("saving model %s", modelName)
 
     model.save(info.modelDir + modelName)

@@ -55,7 +55,7 @@ runResNet50: install activate
 	$(PYTHON) $(EXE) --log --generate --model resNet50 --pandas --epoch 20
 	
 # Run everything
-runAll: runDefault runDefaultAgu runPanda runPandasAgu
+runAll: runDefault runDefaultAgu runPanda runPandaAgu runResNet50
 	
 # Predict
 predict:

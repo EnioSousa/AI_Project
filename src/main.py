@@ -85,7 +85,13 @@ if __name__ == '__main__':
     gpuMemorygrowth()
 
     if (args.generate):
-        model.trainModel(modelName, args)
+        try:
+            model.trainModel(modelName, args)
+        except Exception as e:
+            logging.exception("Exception while trying to train")
 
     if (args.predict):
-        predict.predict(modelName)
+        try:
+            predict.predict(modelName)
+        except Exception as e:
+            logging.exception("Exception while trying to predict")
