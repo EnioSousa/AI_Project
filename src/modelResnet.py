@@ -1,5 +1,6 @@
+from enum import Flag
 from tensorflow.keras.applications.resnet50 import ResNet50
-from keras.layers import Dense, GlobalAveragePooling2D
+from keras.layers import Dense, Flatten
 from keras.models import Model
 from tensorflow.keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
@@ -9,38 +10,42 @@ import info
 import logging
 import plot
 
+
 def modelResNet50(nClass: int):
     # Download the architecture of ResNet50 with ImageNet weights
-    base_model = ResNet50(include_top=False, weights='imagenet')
+    base_model = ResNet50(include_top=False, weights='imagenet',
+                          input_shape=(224, 224, 3))
+
+    # We won't train the input layers
+    for layer in base_model.layers:
+        layer.trainable = False
 
     # Taking the output of the last convolution block in ResNet50
-    x = base_model.output
+    x = Flatten()(base_model.output)
 
-    # Adding a Global Average Pooling layer
-    x = GlobalAveragePooling2D()(x)
+    x = Dense(100, activation='relu')(x)
+    x = Dense(100, activation='relu')(x)
+    x = Dense(100, activation='relu')(x)
 
-    # Adding a fully connected layer having 1024 neurons
-    x = Dense(1024, activation='relu')(x)
-
-    # Adding a fully connected layer having 2 neurons which will
-    # give the probability of image having either dog or cat
+    # Adding a fully connected layer having 2/3 neurons which will
+    # give the probability of image having either dog or cat or panda
     predictions = Dense(nClass, activation='softmax')(x)
 
     # Model to be trained
     model = Model(inputs=base_model.input, outputs=predictions)
 
-    # Training only top layers i.e. the layers which we have added in the end
-    for layer in base_model.layers:
-        layer.trainable = False
+    # IF the modelruns like shit, lets try another optimizer
+    opt = SGD(lr=0.0001, momentum=0.9)
+
     # Compiling the model
-    model.compile(optimizer=SGD(lr=0.0001, momentum=0.9),
-                  loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer=opt, loss='categorical_crossentropy',
+                  metrics=['accuracy'])
 
-    return base_model, model
+    return model
 
 
-def trainModelResNet50(nClass: int, modelName:str, trainDir: str, testDir: str):
-    baseModel, model = modelResNet50(nClass)
+def trainModelResNet50(nClass: int, modelName: str, trainDir: str, testDir: str):
+    model = modelResNet50(nClass)
 
     # Creating objects for image augmentations
     logging.info("Choosing image generator type")
@@ -62,25 +67,8 @@ def trainModelResNet50(nClass: int, modelName:str, trainDir: str, testDir: str):
                                               batch_size=info.batchNumber,
                                               class_mode='categorical')
 
-    # Training the model for 5 epochs
-    logging.info("Traning model for epochs")
-    history = model.fit_generator(trainGen,
-                        steps_per_epoch=len(trainGen),
-                        epochs=5,
-                        validation_data=testGen,
-                        validation_steps=len(testGen))
-
-    plot.plotGraph(history, modelName + ".firstTrain")
-
-    # We will try to train the last stage of ResNet50
-    for layer in baseModel.layers[0:143]:
-        layer.trainable = False
-
-    for layer in baseModel.layers[143:]:
-        layer.trainable = True
-
     # Training the model for 10 epochs
-    logging.info("Traning the laster stages/layers for 10 epochs")
+    logging.info("Traning for 10 epochs")
     history = model.fit_generator(trainGen,
                                   steps_per_epoch=len(trainGen),
                                   epochs=10,
@@ -93,7 +81,7 @@ def trainModelResNet50(nClass: int, modelName:str, trainDir: str, testDir: str):
     print('> %.3f' % (acc * 100.0))
     logging.info("Accuracy is %.3f", (acc * 100.0))
 
-    plot.plotGraph(history, modelName + ".lastTrain")
+    plot.plotGraph(history, modelName)
 
     # Saving the weights in the current directory
     model.save_weights(info.modelDir + "resnet50_weights.h5")
