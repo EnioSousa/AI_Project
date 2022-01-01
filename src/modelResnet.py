@@ -1,6 +1,6 @@
 from enum import Flag
 from tensorflow.keras.applications.resnet50 import ResNet50
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, GlobalAveragePooling2D
 from keras.models import Model
 from tensorflow.keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
@@ -21,7 +21,7 @@ def modelResNet50(nClass: int):
         layer.trainable = False
 
     # Taking the output of the last convolution block in ResNet50
-    x = Flatten()(base_model.output)
+    x = GlobalAveragePooling2D()(base_model.output)
 
     x = Dense(100, activation='relu')(x)
     x = Dense(100, activation='relu')(x)
