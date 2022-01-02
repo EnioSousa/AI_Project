@@ -2,7 +2,7 @@ from enum import Flag
 from tensorflow.keras.applications.resnet50 import ResNet50
 from keras.layers import Dense, Flatten, GlobalAveragePooling2D
 from keras.models import Model
-from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.optimizers import SGD, Nadam
 from keras.preprocessing.image import ImageDataGenerator
 # import numpy as np
 # from keras.preprocessing import image
@@ -23,9 +23,8 @@ def modelResNet50(nClass: int):
     # Taking the output of the last convolution block in ResNet50
     x = GlobalAveragePooling2D()(base_model.output)
 
-    x = Dense(100, activation='relu')(x)
-    x = Dense(100, activation='relu')(x)
-    x = Dense(100, activation='relu')(x)
+    # let's add a fully-connected layer
+    x = Dense(1024, activation='relu')(x)
 
     # Adding a fully connected layer having 2/3 neurons which will
     # give the probability of image having either dog or cat or panda
@@ -35,8 +34,8 @@ def modelResNet50(nClass: int):
     model = Model(inputs=base_model.input, outputs=predictions)
 
     # IF the modelruns like shit, lets try another optimizer
-    opt = SGD(lr=0.0001, momentum=0.9)
-
+    #opt = SGD(lr=0.001, momentum=0.9)
+    opt = Nadam()
     # Compiling the model
     model.compile(optimizer=opt, loss='categorical_crossentropy',
                   metrics=['accuracy'])

@@ -8,7 +8,10 @@ MODEL = models/
 
 EXE = $(SRC)main.py
 
-.PHONY: all runDefault runGauss runPanda runResNet50 install activate clean checkData predict 
+.PHONY: all run runDefault runGauss runPanda runResNet50 install activate clean checkData predict 
+
+run: install activate
+	$(PYTHON) src/modelFeatureExtraction 
 
 all: checkDir runAll
 
