@@ -11,13 +11,20 @@ EXE = $(SRC)main.py
 .PHONY: all run runDefault runGauss runPanda runResNet50 install activate clean checkData predict 
 
 run: install activate
-	$(PYTHON) src/modelFeatureExtraction 
+	$(PYTHON) $(EXE) --generate --featureDesc --pandas
 
 all: checkDir runAll
 
 # If you need help, you can see the program usage
 help:
 	$(PYTHON) $(EXE) --help
+
+runFeatureDesc: install activate
+# Use the default descriptons dataset 
+	$(PYTHON) $(EXE) --generate --featureDesc 
+# Use the pandas descriptons dataset 
+	$(PYTHON) $(EXE) --generate --featureDesc --pandas
+
 
 runDefault: install activate
 # vgg(1|2|3|16)
