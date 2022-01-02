@@ -8,12 +8,9 @@ MODEL = models/
 
 EXE = $(SRC)main.py
 
-.PHONY: all runDefault runDefaultAgu runPanda runPandaAgu runAll install activate clean checkData predict 
+.PHONY: all runDefault runGauss runPanda runResNet50 install activate clean checkData predict 
 
 all: checkDir runAll
-
-run: install activate
-	$(PYTHON) $(EXE) --log --generate --model vgg16 --epoch 20
 
 # If you need help, you can see the program usage
 help:
@@ -31,7 +28,7 @@ runDefault: install activate
 	$(PYTHON) $(EXE) --log --generate --model dropout --epoch 20
 
 # run default data set with gauss images
-runGaus: install activate
+runGauss: install activate
 # vgg(1|2|3|16) + gauss
 	$(PYTHON) $(EXE) --log --generate --model vgg1 --epoch 20 --gauss
 	$(PYTHON) $(EXE) --log --generate --model vgg2 --epoch 20 --gauss
@@ -59,9 +56,6 @@ runResNet50: install activate
 	$(PYTHON) $(EXE) --log --generate --model resNet50 --epoch 10
 	$(PYTHON) $(EXE) --log --generate --model resNet50 --epoch 10 --gauss
 	$(PYTHON) $(EXE) --log --generate --model resNet50 --pandas --epoch 10
-	
-# Run everything
-runAll: runDefault runDefaultAgu runPanda runPandaAgu runResNet50
 	
 # Predict
 predict:
