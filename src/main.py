@@ -6,6 +6,7 @@ import predict
 import logging
 import model
 
+
 def gpuMemorygrowth():
     """Activates gpu memory growth
     """
@@ -41,6 +42,8 @@ def parseArguments() -> argparse.ArgumentParser:
                         help="If present we try to classify a group of images")
     parser.add_argument("--log", action="store_true",
                         help="If present we put the logs under the model name, otherwise std.log")
+    parser.add_argument("--gauss", action="store_true",
+                        help="If present we use images with white noise")
 
     return parser
 
@@ -71,6 +74,9 @@ if __name__ == '__main__':
 
         if (args.imgAgu):
             modelName += ".imgAgu"
+
+        if ( args.gauss):
+            modelName += ".gauss"
 
     if (args.log and args.model != None):
         logging.basicConfig(filename=info.logDir + modelName + ".log",

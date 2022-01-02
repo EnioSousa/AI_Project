@@ -202,7 +202,7 @@ def trainModel(modelName: str, args: argparse.ArgumentParser.parse_args):
     testSource = info.dataDir
     trainSource = info.dataDir
 
-    if ("imgAgu" in modelName):
+    if ("gauss" in modelName):
         if ("panda" in modelName):
             trainSource += "trainPandaNoise/"
             testSource += "testPanda"
