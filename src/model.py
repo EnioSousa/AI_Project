@@ -255,15 +255,16 @@ def trainModel(modelName: str, args: argparse.ArgumentParser.parse_args):
 
     logging.info("Choosing image generator type")
     # Chose data generator
-    if ("imgAgu" in modelName):
+    if ("vgg16" in modelName):
+        dataGen = ImageDataGenerator(featurewise_center=True,
+                                     horizontal_flip=args.imgAgu)
+        dataGen.mean = [123.68, 116.779, 103.939]
+        
+    elif ("imgAgu" in modelName):
         dataGen = ImageDataGenerator(rescale=1.0/255.0,
                                      width_shift_range=0.1,
                                      height_shift_range=0.1,
                                      horizontal_flip=True)
-
-    elif ("vgg16" in modelName):
-        dataGen = ImageDataGenerator(featurewise_center=True)
-        dataGen.mean = [123.68, 116.779, 103.939]
 
     else:
         dataGen = ImageDataGenerator(rescale=1.0/255.0)
@@ -286,12 +287,19 @@ def trainModel(modelName: str, args: argparse.ArgumentParser.parse_args):
                                           target_size=targetSize)
 
     logging.info("Traning model")
+    # history = model.fit(trainGen,
+    #                     steps_per_epoch=len(trainGen),
+    #                     validation_data=testGen,
+    #                     validation_steps=len(testGen),
+    #                     epochs=args.epoch)
+
     history = model.fit(trainGen,
-                        steps_per_epoch=len(trainGen),
+                        steps_per_epoch=1,
                         validation_data=testGen,
-                        validation_steps=len(testGen),
+                        validation_steps=1,
                         epochs=args.epoch)
 
+    
     logging.info("Traning finished")
     (loss, acc) = model.evaluate(testGen, steps=len(testGen))
     print('> %.3f' % (acc * 100.0))
