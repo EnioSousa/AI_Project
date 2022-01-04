@@ -41,6 +41,10 @@ def parseArguments() -> argparse.ArgumentParser:
                         help="If present we try to classify a group of images")
     parser.add_argument("--log", action="store_true",
                         help="If present we put the logs under the model name, otherwise std.log")
+    parser.add_argument("--gauss", action="store_true",
+                        help="If present we use images with white noise")
+    parser.add_argument("--featureDesc", action="store_true",
+                        help="If present we try to use the image descriptions")
 
     return parser
 
@@ -50,12 +54,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if (args.generate):
-        if (args.epoch == None):
-            parser.error("--epoch is required when --generate is set")
+        if (args.epoch == None and (not args.featureDesc)):
+            parser.error("--epoch or --featureDesc is required when --generate is set")
             sys.exit(1)
 
-        if (args.model == None):
-            parser.error("--model is required when --generate is set")
+        if (args.model == None and (not args.featureDesc)):
+            parser.error("--model or --featureDesc is required when --generate is set")
             sys.exit(1)
 
     if (args.predict):
@@ -63,14 +67,19 @@ if __name__ == '__main__':
             parser.error("--model is required when --predict is set")
             sys.exit(1)
 
+    modelName = None
+
     if (args.model != None):
         modelName = args.model
-
+       
         if (args.pandas):
             modelName += ".pandas"
 
         if (args.imgAgu):
             modelName += ".imgAgu"
+
+        if ( args.gauss):
+            modelName += ".gauss"
 
     if (args.log and args.model != None):
         logging.basicConfig(filename=info.logDir + modelName + ".log",

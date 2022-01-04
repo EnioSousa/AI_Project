@@ -1,0 +1,14 @@
+id,ear_pointy,nose_size,animal_type
+cat.22,6,1,cat
+cat.23,8,2,cat
+cat.24,10,4,cat
+cat.25,8,3,cat
+dog.17,3,9,dog
+dog.18,4,7,dog
+dog.21,2,10,dog
+dog.23,3,10,dog
+dog.x,9,1,dog
+panda.22,3,1,panda
+panda.23,4,2,panda
+panda.24,1,4,panda
+panda.25,5,3,panda
