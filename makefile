@@ -24,7 +24,8 @@ runFeatureDesc: install activate
 	$(PYTHON) $(EXE) --generate --featureDesc 
 # Use the pandas descriptons dataset 
 	$(PYTHON) $(EXE) --generate --featureDesc --pandas
-
+	
+runAll: runDefault runGauss runPanda runResNet50 runFeatureDesc
 
 runDefault: install activate
 # vgg(1|2|3|16)
